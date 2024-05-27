@@ -1,0 +1,35 @@
+ipv4: 44.198.144.9
+puerto: 27017
+user: root
+password: coinzzz
+
+
+
+
+
+
+
+
+coinzzz_db> db.getCollectionInfos()
+[
+  {
+    name: 'users',
+    type: 'collection',
+    options: {},
+    info: {
+      readOnly: false,
+      uuid: UUID('1a0442ad-fc34-49e6-acbd-3b2c4ce9bf3b')
+    },
+    idIndex: { v: 2, key: { _id: 1 }, name: '_id_' }
+  },
+  {
+    name: 'currencies',
+    type: 'collection',
+    options: {},
+    info: {
+      readOnly: false,
+      uuid: UUID('aaca2ea3-8c55-4e72-8a2f-cf3d9d009e6c')
+    },
+    idIndex: { v: 2, key: { _id: 1 }, name: '_id_' }
+  }
+]

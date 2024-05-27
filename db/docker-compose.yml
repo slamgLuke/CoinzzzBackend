@@ -1,0 +1,14 @@
+version: '3.8' 
+
+services:
+  db_services:
+    image: mongo # image de mongo
+    container_name: container_coinzzz_docker
+    restart: unless-stopped # restart policy when container stops 
+    volumes:
+      - /mongo/datadir:/data/db  # /mongo/datadir tiene que preexistir para que funcione correctamente
+    ports:
+      - "27017:27017"  # default port
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root  
+      MONGO_INITDB_ROOT_PASSWORD: coinzzz       
