@@ -21,11 +21,15 @@ router.get('/track', async (req: Request, res: Response) => {
     //TODO
     try {
         const db = getDb();
-        const collection = db.collection('tracking');
+        const collection = db.collection('users');
         const query = { userId: userId };
         //Obtener json con las monedas seguidas
         const result = await collection.findOne(query);
-        res.send(result);
+        if (result) {
+            res.send(result.tracking_list);
+        } else {
+            res.status(404).send('User not found');
+        }
     } catch (error) {
         res.status(500).send('Error getting tracking list');
     }
@@ -55,15 +59,19 @@ router.post('/track', async (req: Request, res: Response) => {
     //Comunicarse con el servicio de base de datos, y realizar la inserción
     try {
         const db = getDb();
-        const collection = db.collection('tracking');
+        const collection = db.collection('users');
         const query = { userId: userId };
         const update = {
-          $addToSet: { currencyIds: currencyId } // Agrega currencyId a un array, evitando duplicados
+          $addToSet: { tracking_list: currencyId } // Agrega currencyId a un array, evitando duplicados
         };
-        const options = { upsert: true }; // Crear un documento si no existe
-    
-        const result = await collection.updateOne(query, update, options);
-        res.send("Done adding.");
+
+        const result = await collection.updateOne(query, update);
+        if (result.upsertedCount > 0) {
+            res.send('Tracking added');
+        }else
+        {
+            res.send('Tracking already exists');
+        }
     } catch (error) {
         res.status(500).send('Error updating tracking');
     }
@@ -91,47 +99,21 @@ router.delete('/track', async (req: Request, res: Response) => {
     //Comunicarse con el servicio de base de datos, y realizar la eliminación
     try {
         const db = getDb();
-        const collection = db.collection('tracking');
+        const collection = db.collection('users');
 
         //Obtener json con las monedas seguidas
         const query = { userId: userId };
-        const update = {$pull: { currencyIds : removeCurrencyId}}
+        const update = {$pull: { tracking_list : removeCurrencyId}}
         const result = await collection.updateOne(query, update);
-        res.send("Done removing.");
+        if (result.modifiedCount > 0) {
+            res.send('Tracking removed');
+        }
+        else{
+            res.send('Tracking not found');
+        }
     } catch (error) {
         res.status(500).send('Error updating tracking');
     }
 });
-
-/*
-// Definir una ruta para el servicio de portfolio
-router.get('/portfolio', (req: Request, res: Response) => {
-    //Obtener datos del usuario
-    const userId = req.query.userId;
-    const currency = req.query.currency;
-    let date = req.query.date;
-
-    //Validar que se haya enviado el usuario
-    if (!userId) {
-        res.status(400).send('User is required');
-        return;
-    }
-
-    //Validar que se haya enviado la moneda
-    if (!currency) {
-        res.status(400).send('Currency is required');
-        return;
-    }
-
-    //Si no se envía la fecha, se toma la fecha actual
-    if (!date) {
-        date = new Date().toISOString().split('T')[0];
-    }
-
-    //Enviar respuesta
-    //TODO: IMPLEMENTAR
-    res.send(`Portfolio of user ${userId} for ${date}`);
-
-});*/
 
 export default router;
