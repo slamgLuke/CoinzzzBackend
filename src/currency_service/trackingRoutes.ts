@@ -7,9 +7,9 @@ const router = express.Router();
 // Definir una ruta para el servicio de tracklist
 
 //Obtener la lista de monedas seguidas del usuario
-router.get('/track', (req: Request, res: Response) => {
+router.get('/track', async (req: Request, res: Response) => {
     //Obtener datos del usuario
-    const userId = req.query.userId;
+    const userId = req.body.userId;
 
     //Validar que se haya enviado la moneda
     if (!userId) {
@@ -23,7 +23,8 @@ router.get('/track', (req: Request, res: Response) => {
         const db = getDb();
         const collection = db.collection('tracking');
         const query = { userId: userId };
-        const result = collection.find(query);
+        //Obtener json con las monedas seguidas
+        const result = await collection.findOne(query);
         res.send(result);
     } catch (error) {
         res.status(500).send('Error getting tracking list');
@@ -32,14 +33,15 @@ router.get('/track', (req: Request, res: Response) => {
 
 
 //Postear moneda a seguir
-router.post('/track', (req: Request, res: Response) => {
+router.post('/track', async (req: Request, res: Response) => {
     //Obtener datos del usuario
-    const userId = req.query.userId;
+    const userId = req.body.userId;
     //Obtener datos de la moneda
-    const currencyId = req.query.currencyId;
+    const currencyId = req.body.currencyId;
 
     //Validar que se haya enviado el usuario
     if (!userId) {
+        console.log('User is required', userId);
         res.status(400).send('User is required');
         return;
     }
@@ -54,20 +56,25 @@ router.post('/track', (req: Request, res: Response) => {
     try {
         const db = getDb();
         const collection = db.collection('tracking');
-        const query = { userId: userId, currencyId: currencyId };
-        const result = collection.insertOne(query);
-        res.send(result);
+        const query = { userId: userId };
+        const update = {
+          $addToSet: { currencyIds: currencyId } // Agrega currencyId a un array, evitando duplicados
+        };
+        const options = { upsert: true }; // Crear un documento si no existe
+    
+        const result = await collection.updateOne(query, update, options);
+        res.send("Done adding.");
     } catch (error) {
-        res.status(500).send('Error inserting tracking');
+        res.status(500).send('Error updating tracking');
     }
 });
 
 //Eliminar moneda a seguir
-router.delete('/track', (req: Request, res: Response) => {
+router.delete('/track', async (req: Request, res: Response) => {
     //Obtener datos del usuario
-    const userId = req.query.userId;
+    const userId = req.body.userId;
     //Obtener datos de la moneda
-    const currencyId = req.query.currencyId;
+    const removeCurrencyId = req.body.currencyId;
 
     //Validar que se haya enviado el usuario
     if (!userId) {
@@ -76,21 +83,23 @@ router.delete('/track', (req: Request, res: Response) => {
     }
 
     //Validar que se haya enviado la moneda
-    if (!currencyId) {
+    if (!removeCurrencyId) {
         res.status(400).send('Currency is required');
         return;
     }
 
     //Comunicarse con el servicio de base de datos, y realizar la eliminación
-    //TODO
-    try{
+    try {
         const db = getDb();
         const collection = db.collection('tracking');
-        const query = { userId: userId, currencyId: currencyId };
-        const result = collection.deleteOne(query);
-        res.send(result);
+
+        //Obtener json con las monedas seguidas
+        const query = { userId: userId };
+        const update = {$pull: { currencyIds : removeCurrencyId}}
+        const result = await collection.updateOne(query, update);
+        res.send("Done removing.");
     } catch (error) {
-        res.status(500).send('Error deleting tracking');
+        res.status(500).send('Error updating tracking');
     }
 });
 
