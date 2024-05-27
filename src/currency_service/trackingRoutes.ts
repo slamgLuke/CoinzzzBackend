@@ -1,11 +1,10 @@
-//Rutas para el servicio de tracklist y portfolio
+//Rutas para el servicio de tracklist
 
 import express, { Request, Response } from 'express';
 import { connectToDatabase, getDb } from './db';
 const router = express.Router();
 
 // Definir una ruta para el servicio de tracklist
-
 //Obtener la lista de monedas seguidas del usuario
 router.get('/track', async (req: Request, res: Response) => {
     //Obtener datos del usuario
