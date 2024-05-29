@@ -1,7 +1,7 @@
 ipv4: 44.198.144.9
 puerto: 27017
 user: root
-password: coinzzz
+password: 
 
 
 

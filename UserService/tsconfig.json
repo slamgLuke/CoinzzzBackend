@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist",   // Directorio de salida para archivos compilados
+    "rootDir": "./src"    // Directorio raíz de los archivos TypeScript
+  },
+}
