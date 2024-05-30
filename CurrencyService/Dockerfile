@@ -10,4 +10,4 @@ RUN npm install
 # # npm run startUS => Users Service
 # CMD ["npm", "run", "startUS"]
 # npm run startCS => Comments Service
-CMD ["npm", "run", "startCS"]
+CMD ["npm", "run", "start"]

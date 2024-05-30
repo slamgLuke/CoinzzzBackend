@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo Testing....",
-    "startCS": "npx ts-node ./src/currency_service/app.ts",
-    "startUS": "npx ts-node ./src/user_service/app.ts"
+    "start": "npx ts-node ./src/app.ts"
   },
   "author": "",
   "license": "ISC",
