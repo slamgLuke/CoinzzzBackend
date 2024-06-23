@@ -1,6 +1,8 @@
 //Rutas para el servicio de usuarios
 import express, { Request, Response } from 'express';
 import { connectToDatabase, getDb } from './db';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 const userStructure = {
     "email": "",
@@ -13,21 +15,21 @@ const userStructure = {
 const router = express.Router();
 
 //Obtener toda la informacion de un usuario
-router.get('/user', async (req: Request, res: Response) => {
-    //Obtener datos del usuario
-    const email = req.body.email;
-    const password = req.body.password; //TODO: encriptar
-
+router.get('/login', async (req: Request, res: Response) => {
     //Validar que se haya enviado el usuario
-    if (!password) {
-        res.status(400).send('User is required');
+    if (!req.body.email) {
+        res.status(400).send('Mail is required');
         return;
     }
 
-    if (!email) {
+    if (!req.body.password) {
         res.status(400).send('Password is required');
         return;
     }
+
+    //Encyptar
+    const email = req.body.email;
+    const password = req.body.password;
 
     //Comunicarse con el servicio de base de datos, y realizar la consulta
     try {
@@ -54,20 +56,20 @@ router.get('/user', async (req: Request, res: Response) => {
 });
 
 //Crear un usuario basado en un json
-router.post('/user', async (req: Request, res: Response) => {
-    //Obtener datos del usuario
-    const email = req.body.email;
-    const password = req.body.password; //TODO: encriptar
-    
+router.post('/register', async (req: Request, res: Response) => {    
     //Verificar que se haya enviado el correo
-    if (!email) {
+    if (!req.body.email) {
         res.status(400).send('User mail is required');
         return;
     }
-    if (!password) {
+    if (!req.body.password) {
         res.status(400).send('User password is required');
         return;
     }
+
+    //Obtener datos del usuario
+    const email = req.body.email;
+    const password = await bcrypt.hash(req.body.password, 10);
 
     //Utilizar la plantilla json para crear el usuario
     const newUser = {...userStructure, email : email, password: password};

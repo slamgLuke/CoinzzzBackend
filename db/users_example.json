@@ -1,36 +1,35 @@
 {
-    "_id": ObjectId("..."),
+    "_id": 0,
     "email": "user@example.com",
     "password": "hashed_password",
-    "tracking_list": [
-        {
-            "currency_address": "address1",
-            "symbol": "BTC",
-            "name": "Bitcoin"
-        },
-        {
-            "currency_address": "address2",
-            "symbol": "ETH",
-            "name": "Ethereum"
-        }
-    ],
-    "portfolio": [
-        {
-            "currency_address": "address1",
-            "symbol": "BTC",
+    "tracking_list": ["ETR","ERT","XDE"],
+    "portfolio": {
+            "networth": 57155.25,
             "transactions": [
                 {
-                    "amount": 0.5,
-                    "timestamp": ISODate("2024-05-25T12:00:00Z"),
-                    "price": 50000
+                    "symbol": "BTC",
+                    "type": "buy",
+                    "date": "2024-05-25T12:00:00Z",
+                    "price": 69500.5,
+                    "quantity": 0.5,
+                    "value": 34750.25
                 },
                 {
-                    "amount": 1.0,
-                    "timestamp": ISODate("2024-05-26T12:00:00Z"),
-                    "price": 52000
+                    "symbol": "ETH",
+                    "type": "sell",
+                    "date": "2024-05-25T12:00:00Z",
+                    "price": 2600,
+                    "quantity": 1,
+                    "value": 2600
+                },
+                {
+                    "symbol": "ETH",
+                    "type": "buy",
+                    "date": "2024-05-25T12:00:00Z",
+                    "price": 2500.5,
+                    "quantity": 10,
+                    "value": 25005
                 }
             ]
         }
-    ]
 }
-

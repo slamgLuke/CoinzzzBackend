@@ -1,16 +1,7 @@
 {
-    "_id": ObjectId("..."),
-    "address": "address1",
-    "name": "Bitcoin",
-    "symbol": "BTC",
-    "prices": [
-        {
-            "timestamp": ISODate("2024-05-25T12:00:00Z"),
-            "price": 50000
-        },
-        {
-            "timestamp": ISODate("2024-05-26T12:00:00Z"),
-            "price": 52000
-        }
-    ]
+    "symbol" : "BTC",
+    "marketCap" : "20",
+    "price" : 69.500,
+    "today" : 0.5,
+    "week" : 8.21
 }
