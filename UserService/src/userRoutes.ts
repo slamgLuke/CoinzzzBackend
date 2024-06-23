@@ -3,6 +3,7 @@ import express, { Request, Response } from 'express';
 import { connectToDatabase, getDb } from './db';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { randomBytes } from 'crypto';
 
 const userStructure = {
     "email": "",
@@ -11,47 +12,37 @@ const userStructure = {
     "portfolio": []
 }
 
-
+const  JWT_SECRET = randomBytes(64).toString('hex');
 const router = express.Router();
 
 //Obtener toda la informacion de un usuario
 router.get('/login', async (req: Request, res: Response) => {
-    //Validar que se haya enviado el usuario
     if (!req.body.email) {
-        res.status(400).send('Mail is required');
+        res.status(400).send('User mail is required');
         return;
     }
-
     if (!req.body.password) {
-        res.status(400).send('Password is required');
+        res.status(400).send('User password is required');
         return;
     }
 
-    //Encyptar
-    const email = req.body.email;
-    const password = req.body.password;
-
-    //Comunicarse con el servicio de base de datos, y realizar la consulta
     try {
         const db = getDb();
         const collection = db.collection('users');
-        const query = { "email" : email };
-        //Obtener json con los datos del usuario
-        const result = await collection.findOne(query);
-        if (result) {
-            if (result.password !== password) {
-                res.status(401).send('Invalid password');
-                return;
-            }
-            const tracking_list = result.tracking_list;
-            const portfolio = result.portfolio;
-            console.log(new Date().toISOString(), "User logged in.")
-            res.send({ "tracking_list": tracking_list, "portfolio": portfolio });
-        } else {
-            res.status(404).send('User not found');
-        }
+
+        // Buscar usuario por email
+        const user = await collection.findOne({ email: req.body.email });
+        if (!user) return res.status(400).send('Email or password is wrong');
+
+        // Verificar contraseña
+        const validPassword = await bcrypt.compare(req.body.password, user.password);
+        if (!validPassword) return res.status(400).send('Email or password is wrong');
+
+        // Crear y asignar token JWT
+        const token = jwt.sign({ _id: user._id }, JWT_SECRET);
+        res.header('Authorization', token).send(token);
     } catch (error) {
-        res.status(500).send('Error getting user');
+        res.status(500).send('Error logging in');
     }
 });
 
