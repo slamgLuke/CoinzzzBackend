@@ -1,9 +1,8 @@
 //Rutas para el servicio de usuarios
 import express, { Request, Response } from 'express';
-import { connectToDatabase, getDb } from './db';
+import { getDb } from './db';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { randomBytes } from 'crypto';
 
 const userStructure = {
     "email": "",
@@ -12,7 +11,7 @@ const userStructure = {
     "portfolio": []
 }
 
-const  JWT_SECRET = randomBytes(64).toString('hex');
+const  JWT_SECRET = 'zzznioc';
 const router = express.Router();
 
 //Obtener toda la informacion de un usuario
