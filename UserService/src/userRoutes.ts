@@ -15,7 +15,9 @@ const  JWT_SECRET = 'zzznioc';
 const router = express.Router();
 
 //Obtener toda la informacion de un usuario
-router.get('/login', async (req: Request, res: Response) => {
+router.post('/login', async (req: Request, res: Response) => {
+
+    console.log("Login request received.")
     if (!req.body.email) {
         res.status(400).send('User mail is required');
         return;
@@ -24,6 +26,8 @@ router.get('/login', async (req: Request, res: Response) => {
         res.status(400).send('User password is required');
         return;
     }
+
+
 
     try {
         const db = getDb();
@@ -37,9 +41,11 @@ router.get('/login', async (req: Request, res: Response) => {
         const validPassword = await bcrypt.compare(req.body.password, user.password);
         if (!validPassword) return res.status(400).send('Email or password is wrong');
 
+        console.log(new Date().toISOString(), "User login.")
         // Crear y asignar token JWT
         const token = jwt.sign({ _id: user._id }, JWT_SECRET);
-        res.header('Authorization', token).send(token);
+        console.log(new Date().toISOString(), "Token created.", token)
+        res.header('Authorization', token).send({token});
     } catch (error) {
         res.status(500).send('Error logging in');
     }
