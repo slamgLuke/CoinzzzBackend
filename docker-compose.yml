@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   UserServices:
-    build: ./UserServices
+    build: ./UserService
     image: davidherencia/coinzzz_userservices
     container_name: coinzzz_userservices
     restart: unless-stopped # restart policy when container stops 
