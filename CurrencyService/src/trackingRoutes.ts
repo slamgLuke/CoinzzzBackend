@@ -156,10 +156,10 @@ router.post('/portfolio',verifyToken, async (req: Request, res: Response) => {
         const transactionToAdd = {...transactionTemplate, ...req.body.transaction}
 
         if (transactionToAdd.type === 'buy') {
-            transactionToAdd.value = transactionToAdd.price * transactionToAdd.quantity * -1;
+            transactionToAdd.value = transactionToAdd.price * transactionToAdd.quantity ;
         }
         else if (transactionToAdd.type === 'sell') {
-            transactionToAdd.value = transactionToAdd.price * transactionToAdd.quantity;
+            transactionToAdd.value = transactionToAdd.price * transactionToAdd.quantity * -1;
         }
         else {
             res.status(400).send('Invalid transaction type');
