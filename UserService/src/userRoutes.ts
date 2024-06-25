@@ -8,7 +8,10 @@ const userStructure = {
     "email": "",
     "password": "",
     "tracking_list": [],
-    "portfolio": []
+    "portfolio": {
+        "networth": 0,
+        "transactions": []
+    }
 }
 
 const  JWT_SECRET = 'zzznioc';
@@ -26,7 +29,6 @@ router.post('/login', async (req: Request, res: Response) => {
         res.status(400).send('User password is required');
         return;
     }
-
 
 
     try {
@@ -81,5 +83,7 @@ router.post('/register', async (req: Request, res: Response) => {
         res.status(500).send('Error creating user');
     }
 });
+
+
 
 export default router;

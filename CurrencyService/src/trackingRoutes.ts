@@ -3,7 +3,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import { connectToDatabase, getDb } from './db';
 import jwt from 'jsonwebtoken';
-
+import { ObjectId } from 'mongodb';
 
 const router = express.Router();
 const  JWT_SECRET = 'zzznioc';
@@ -11,6 +11,7 @@ const  JWT_SECRET = 'zzznioc';
 // Middleware para verificar el token
 const verifyToken = (req: Request, res: Response, next: NextFunction) => {
     const token = req.header('Authorization');
+    console.log("Token check")
     if (!token) {
         return res.status(401).send('Unauthorized');
     }
@@ -19,7 +20,8 @@ const verifyToken = (req: Request, res: Response, next: NextFunction) => {
         if (err) {
             return res.status(401).send('Invalid token');
         }
-        req.body.user = decoded; // Guarda los datos decodificados en la solicitud para usarlos más tarde
+        //console.log(decoded);
+        req.body.user = ObjectId.createFromHexString(decoded._id); // Guarda los datos decodificados en la solicitud para usarlos más tarde
         next();
     });
 };
@@ -32,9 +34,14 @@ router.get('/track',verifyToken , async (req: Request, res: Response) => {
     try {
         const db = getDb();
         const collection = db.collection('users');
-        const query = { userId: req.body.user._id };
+        const query = { _id: req.body.user };
+        //console.log(query);
         //Obtener json con las monedas seguidas
+
+        //Busca en la bd el id 
+
         const result = await collection.findOne(query);
+        console.log(result);
         if (result) {
             res.send(result.tracking_list);
         } else {
@@ -44,7 +51,6 @@ router.get('/track',verifyToken , async (req: Request, res: Response) => {
         res.status(500).send('Error getting tracking list');
     }
 });
-
 
 //Postear moneda a seguir
 router.post('/track',verifyToken, async (req: Request, res: Response) => {
@@ -57,7 +63,7 @@ router.post('/track',verifyToken, async (req: Request, res: Response) => {
 
         const db = getDb();
         const collection = db.collection('users');
-        const query = { userId: req.body.user._id };
+        const query = { _id: req.body.user };
         const update = {
             $addToSet: { tracking_list: req.body.currencyId } // Agrega currencyId a un array, evitando duplicados
         };
@@ -89,7 +95,7 @@ router.delete('/track',verifyToken, async (req: Request, res: Response) => {
         const collection = db.collection('users');
 
         //Obtener json con las monedas seguidas
-        const query = { userId: req.body.user._id };
+        const query = { _id: req.body.user };
         const update = { $pull: { tracking_list: req.body.user.currencyId } }
         const result = await collection.updateOne(query, update);
         if (result.modifiedCount > 0) {
@@ -104,56 +110,67 @@ router.delete('/track',verifyToken, async (req: Request, res: Response) => {
     }
 });
 
+//Transacciones TEMPLATE
+const transactionTemplate = { 
+    symbol: String,
+    type: String,
+    date: Date,
+    price: Number,
+    quantity: Number,
+    value: Number
+}
 
-//Obtener lista de monedas publica
-router.get('/currency', async (req: Request, res: Response) => {
+
+//Portfolio
+router.get('/portfolio',verifyToken, async (req: Request, res: Response) => {
     //Comunicarse con el servicio de base de datos, y realizar la consulta
     try {
         const db = getDb();
-        const collection = db.collection('currencies');
-        const result = await collection.find().toArray();
-        res.send(result);
-    } catch (error) {
-        res.status(500).send('Error getting currencies');
-    }
-});
-
-//añadir monedas a la base de datos ADMIN ONLY
-router.post('/currency', async (req: Request, res: Response) => {
-    //Obtener datos de la moneda
-    const currencyId = req.body.currencyId;
-    const currencyName = req.body.currencyName;
-    const PASSWORD = req.body.PASSWORD;
-
-    if (PASSWORD !== 'coinzzz') {
-        res.status(401).send('Unauthorized');
-        return;
-    }
-
-    //Validar que se haya enviado la moneda
-    if (!currencyId) {
-        res.status(400).send('Currency is required');
-        return;
-    }
-
-    //Comunicarse con el servicio de base de datos, y realizar la inserción
-    try {
-        const db = getDb();
-        const collection = db.collection('currencies');
-        const query = { currencyId: currencyId };
-        const update = {
-            $set: { currencyName: currencyName }
-        };
-
-        const result = await collection.updateOne(query, update, { upsert: true });
-        if (result.upsertedCount > 0) {
-            res.send('Currency added');
+        const collection = db.collection('users');
+        const query = { _id: req.body.user };
+        //Obtener json con las monedas seguidas
+        const result = await collection.findOne(query);
+        if (result) {
+            res.send(result.portfolio);
         } else {
-            res.send('Currency already exists');
+            res.status(404).send('User not found');
         }
     } catch (error) {
-        res.status(500).send('Error updating currency');
+        res.status(500).send('Error getting portfolio');
     }
 });
+
+//post portfolio
+router.post('/portfolio',verifyToken, async (req: Request, res: Response) => {
+    //Comunicarse con el servicio de base de datos, y realizar la inserción
+    if (!req.body.transaction) {
+        res.status(400).send('Transaction required');
+        return;
+    }
+
+    try {
+        const db = getDb();
+        const collection = db.collection('users');
+        const query = { _id: req.body.user };
+
+        const transationToAdd = {...transactionTemplate, ...req.body.transaction}
+
+        const update = {
+            $addToSet: { "portfolio.transactions" : transationToAdd}
+        };
+
+        const result = await collection.updateOne(query, update);
+        if (result.modifiedCount > 0) {
+            res.send('Portfolio updated');
+            console.log(new Date().toISOString(), "Portfolio updated.")
+            return;
+        }
+        else
+            res.send('Portfolio already exists');
+    } catch (error) {
+        res.status(500).send('Error updating portfolio');
+    }
+}
+);
 
 export default router;
