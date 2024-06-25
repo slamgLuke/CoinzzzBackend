@@ -6,4 +6,4 @@ COPY ./ ./
 RUN npm install
 
 # Run the app
-CMD ["npm", "run", "start"]
+CMD ["npm", "run", "start", "--", "--host"]
