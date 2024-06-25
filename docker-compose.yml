@@ -1,0 +1,18 @@
+version: '3.8' 
+
+services:
+  UserServices:
+    build: ./UserService
+    image: davidherencia/coinzzz_userservices
+    container_name: coinzzz_userservices
+    restart: unless-stopped # restart policy when container stops 
+    ports:
+      - 3001:3001
+
+  CurrencyService:
+    build: ./CurrencyService
+    image: davidherencia/coinzzz_currencyservice
+    container_name: coinzzz_currencyservice
+    restart: unless-stopped # restart policy when container stops 
+    ports:
+      - 3000:3000
