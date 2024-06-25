@@ -96,7 +96,7 @@ router.delete('/track',verifyToken, async (req: Request, res: Response) => {
 
         //Obtener json con las monedas seguidas
         const query = { _id: req.body.user };
-        const update = { $pull: { tracking_list: req.body.user.currencyId } }
+        const update = { $pull: { tracking_list: req.body.currencyId } }
         const result = await collection.updateOne(query, update);
         if (result.modifiedCount > 0) {
             res.send('Tracking removed');
@@ -153,10 +153,21 @@ router.post('/portfolio',verifyToken, async (req: Request, res: Response) => {
         const collection = db.collection('users');
         const query = { _id: req.body.user };
 
-        const transationToAdd = {...transactionTemplate, ...req.body.transaction}
+        const transactionToAdd = {...transactionTemplate, ...req.body.transaction}
 
+        if (transactionToAdd.type === 'buy') {
+            transactionToAdd.value = transactionToAdd.price * transactionToAdd.quantity * -1;
+        }
+        else if (transactionToAdd.type === 'sell') {
+            transactionToAdd.value = transactionToAdd.price * transactionToAdd.quantity;
+        }
+        else {
+            res.status(400).send('Invalid transaction type');
+            return;
+        }
         const update = {
-            $addToSet: { "portfolio.transactions" : transationToAdd}
+            $addToSet: { "portfolio.transactions" : transactionToAdd},
+            $inc: { "portfolio.networth" : transactionToAdd.value}
         };
 
         const result = await collection.updateOne(query, update);
