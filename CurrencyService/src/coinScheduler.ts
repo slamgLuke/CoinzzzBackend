@@ -2,8 +2,6 @@ import { getDb } from './db';
  
 const API_URL = 'https://api.coincap.io/v2/assets?ids=';
 
-
-
 const historical_template = {
     name : "",
     date : new Date(),
@@ -13,15 +11,14 @@ const historical_template = {
     week: 0,
 }
 
-
 async function fetchData() {
     try {
         //console.log('Fetching coins...');
         //Fetch all current coins from db
         const db = getDb();
-        const collection = db.collection('currencies');
+        const coin_collection = db.collection('currencies');
 
-        const cursor = collection.find({}, { projection: { _id: 0, name: 1 } });
+        const cursor = coin_collection.find({}, { projection: { _id: 0, name: 1 } });
         // Fetch all documents
         const coins = await cursor.toArray();
         // Extract and convert names to lowercase
@@ -58,6 +55,23 @@ async function fetchData() {
             console.log('Error inserting coins:', result);
         }
         
+
+        // Actualizar los precios en la colección 'currencies'
+        const bulkOperations = newCoins.map((coin:any) => ({
+            updateOne: {
+                filter: { _id: coin.name },
+                update: { $set: { price: coin.price } }
+            }
+        }));
+
+        const updateResult = await coin_collection.bulkWrite(bulkOperations);
+
+        if (updateResult.modifiedCount > 0) {
+            console.log('Coins updated:', updateResult.modifiedCount);
+        } else {
+            console.log('Error updating coins:', updateResult);
+        }
+
     } catch (error) {
         console.log('Error fetching coins:', error);
     }

@@ -27,7 +27,6 @@ router.post('/historical', async (req: Request, res: Response) => {
     try {
         const db = getDb();
         const collection = db.collection('historical');
-
         const result = await collection.aggregate([
             { $match: { name: { $in: currencyList } } },
             { $sort: { date: -1 } },
@@ -58,7 +57,6 @@ router.post('/historical', async (req: Request, res: Response) => {
             },
             {
                 $project: {
-                    name: '$_id',
                     latestPrice: 1,
                     latestDate: 1,
                     price7D: 1,
