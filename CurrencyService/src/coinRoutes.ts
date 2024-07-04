@@ -19,6 +19,71 @@ router.get('/currency', async (req: Request, res: Response) => {
     }
 });
 
+//Obtener datos de una moneda publica
+router.post('/historical', async (req: Request, res: Response) => {
+    //Obtener datos de la moneda
+    const currencyList = req.body.currencyList;
+    
+    try {
+        const db = getDb();
+        const collection = db.collection('historical');
+        //Calculate  PRICE CHANGE 7D and 30D
+        const query = { name: { $in: currencyList } };
+
+        const result = await collection
+            .aggregate([
+                { $match: query },
+                {
+                    $group: {
+                        _id: '$name',
+                        price: { $last: '$price' },
+                        week: { $last: '$week' },
+                        month: { $last: '$month' },
+                    },
+                },
+            ])
+            .toArray();
+
+        if (result) {
+            res.send(result);
+        }
+        else {
+            res.status(404).send('Currency not found');
+        }
+        
+    } catch (error) {
+        res.status(500).send('Error getting currency');
+    }});
+
+
+//Obtener informacion de moneda (LIST)
+router.post('/currency', async (req: Request, res: Response) => {
+    //Obtener datos de la moneda
+    const currencyList = req.body.currencyList;
+
+    //Validar que se haya enviado la moneda
+    if (!currencyList) {
+        res.status(400).send('currencyList is required');
+        return;
+    }
+
+    //Comunicarse con el servicio de base de datos, y realizar la consulta
+    try {
+        const db = getDb();
+        const collection = db.collection('currencies');
+        //find all currencies in the list (_id)
+        const query = { _id: { $in: currencyList } };
+        const result = await collection.find(query);
+        if (result) {
+            res.send(result);
+        } else {
+            res.status(404).send('Currency not found');
+        }
+    } catch (error) {
+        res.status(500).send('Error getting currency');
+    }
+});
+
 
 //añadir monedas a la base de datos ADMIN ONLY
 router.post('/currency', async (req: Request, res: Response) => {
@@ -55,34 +120,6 @@ router.post('/currency', async (req: Request, res: Response) => {
         }
     } catch (error) {
         res.status(500).send('Error updating currency');
-    }
-});
-
-//Obtener informacion de moneda (LIST)
-router.post('/currency', async (req: Request, res: Response) => {
-    //Obtener datos de la moneda
-    const currencyList = req.body.currencyList;
-
-    //Validar que se haya enviado la moneda
-    if (!currencyList) {
-        res.status(400).send('currencyList is required');
-        return;
-    }
-
-    //Comunicarse con el servicio de base de datos, y realizar la consulta
-    try {
-        const db = getDb();
-        const collection = db.collection('currencies');
-        //find all currencies in the list (_id)
-        const query = { _id: { $in: currencyList } };
-        const result = await collection.find(query);
-        if (result) {
-            res.send(result);
-        } else {
-            res.status(404).send('Currency not found');
-        }
-    } catch (error) {
-        res.status(500).send('Error getting currency');
     }
 });
 
