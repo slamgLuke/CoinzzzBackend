@@ -27,23 +27,61 @@ router.post('/historical', async (req: Request, res: Response) => {
     try {
         const db = getDb();
         const collection = db.collection('historical');
-        //Calculate  PRICE CHANGE 7D and 30D
-        const query = { name: { $in: currencyList } };
 
-        const result = await collection
-            .aggregate([
-                { $match: query },
-                {
-                    $group: {
-                        _id: '$name',
-                        price: { $last: '$price' },
-                        week: { $last: '$week' },
-                        month: { $last: '$month' },
+        const result = await collection.aggregate([
+            { $match: { name: { $in: currencyList } } },
+            { $sort: { date: -1 } },
+            {
+                $group: {
+                    _id: '$name',
+                    latestPrice: { $first: '$price' },
+                    latestDate: { $first: '$date' },
+                    price7D: {
+                        $first: {
+                            $cond: [
+                                { $gte: [{ $subtract: [new Date(), '$date'] }, 7 * 24 * 60 * 60 * 1000] },
+                                '$price',
+                                null
+                            ]
+                        }
                     },
-                },
-            ])
-            .toArray();
+                    price30D: {
+                        $first: {
+                            $cond: [
+                                { $gte: [{ $subtract: [new Date(), '$date'] }, 30 * 24 * 60 * 60 * 1000] },
+                                '$price',
+                                null
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                $project: {
+                    name: '$_id',
+                    latestPrice: 1,
+                    latestDate: 1,
+                    price7D: 1,
+                    price30D: 1,
+                    diff7D: {
+                        $cond: [
+                            { $ifNull: ['$price7D', false] },
+                            { $divide: [{ $subtract: ['$latestPrice', '$price7D'] }, '$price7D'] },
+                            null
+                        ]
+                    },
+                    diff30D: {
+                        $cond: [
+                            { $ifNull: ['$price30D', false] },
+                            { $divide: [{ $subtract: ['$latestPrice', '$price30D'] }, '$price30D'] },
+                            null
+                        ]
+                    }
+                }
+            }
+        ]).toArray();
 
+    
         if (result) {
             res.send(result);
         }
